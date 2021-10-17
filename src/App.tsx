@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react';
-
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SideBar } from './components/SideBar';
 import { Content } from './components/Content';
-
 import { api } from './services/api';
-
 import './styles/global.scss';
 
-import './styles/sidebar.scss';
-import './styles/content.scss';
 
 interface GenreResponseProps {
   id: number;
+  idString: string;
   name: 'action' | 'comedy' | 'documentary' | 'drama' | 'horror' | 'family';
   title: string;
 }
@@ -24,26 +20,37 @@ interface MovieProps {
     Source: string;
     Value: string;
   }>;
+  Rating: string;
   Runtime: string;
 }
 
 export function App() {
-  const [selectedGenreId, setSelectedGenreId] = useState(1);
-
+  const [selectedGenreId, setSelectedGenreId] = useState<string>("1");
   const [genres, setGenres] = useState<GenreResponseProps[]>([]);
-
   const [movies, setMovies] = useState<MovieProps[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<GenreResponseProps>({} as GenreResponseProps);
 
   useEffect(() => {
     api.get<GenreResponseProps[]>('genres').then(response => {
-      setGenres(response.data);
+      const dataFormatted = response.data.map(genre => {
+        return {
+          ...genre,
+          idString: String(genre.id)
+        }
+      })
+      setGenres(dataFormatted);
     });
   }, []);
 
   useEffect(() => {
     api.get<MovieProps[]>(`movies/?Genre_id=${selectedGenreId}`).then(response => {
-      setMovies(response.data);
+      const dataFormatted = response.data.map(movie => {
+        return {
+          ...movie,
+          Rating: movie.Ratings?.[0].Value
+        }
+      })
+      setMovies(dataFormatted);
     });
 
     api.get<GenreResponseProps>(`genres/${selectedGenreId}`).then(response => {
@@ -51,9 +58,7 @@ export function App() {
     })
   }, [selectedGenreId]);
 
-  function handleClickButton(id: number) {
-    setSelectedGenreId(id);
-  }
+  const handleClickButton = useCallback((id: string) => setSelectedGenreId(id), []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>

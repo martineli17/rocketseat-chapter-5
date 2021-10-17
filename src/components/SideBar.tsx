@@ -1,34 +1,34 @@
-import { Button } from "./Button";
+import { lazy, Suspense } from 'react';
+import '../styles/sidebar.scss';
+const ButtonList = lazy(() => import("./Buttons/ButtonList"));
 
 interface SideBarProps {
   genres: Array<{
     id: number;
+    idString: string;
     name: 'action' | 'comedy' | 'documentary' | 'drama' | 'horror' | 'family';
     title: string;
   }>;
-  selectedGenreId: number;
-  buttonClickCallback: (args: any) => void;
+  selectedGenreId: string;
+  buttonClickCallback: (id: string) => void;
 }
 
-export function SideBar({
-  genres,
-  selectedGenreId,
-  buttonClickCallback
-}: SideBarProps) {
+
+export function SideBar(props: SideBarProps) {
   return (
     <nav className="sidebar">
       <span>Watch<p>Me</p></span>
 
       <div className="buttons-container">
-        {genres.map(genre => (
-          <Button
-            key={String(genre.id)}
-            title={genre.title}
-            iconName={genre.name}
-            onClick={() => buttonClickCallback(genre.id)}
-            selected={selectedGenreId === genre.id}
-          />
-        ))}
+        {props.genres &&
+          <Suspense fallback={<div>Carregando... </div>}>
+            <ButtonList
+              genres={props.genres}
+              buttonClickCallback={props.buttonClickCallback}
+              selectedGenreId={props.selectedGenreId}
+            />
+          </Suspense>
+        }
       </div>
 
     </nav>

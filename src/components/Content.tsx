@@ -1,5 +1,6 @@
-import { MovieCard } from "./MovieCard";
-
+import { memo, lazy, Suspense } from "react";
+import '../styles/content.scss';
+const MovieCardList = lazy(() => import("./Movies/MovieCardList"));
 interface ContentProps {
   selectedGenre: {
     id: number;
@@ -15,24 +16,27 @@ interface ContentProps {
       Source: string;
       Value: string;
     }>;
+    Rating: string;
     Runtime: string;
   }>;
 }
 
-export function Content({ selectedGenre, movies }: ContentProps) {
+function ContentComponent(props: ContentProps) {
   return (
     <div className="container">
       <header>
-        <span className="category">Categoria:<span> {selectedGenre.title}</span></span>
+        <span className="category">Categoria:<span> {props.selectedGenre.title}</span></span>
       </header>
 
       <main>
-        <div className="movies-list">
-          {movies.map(movie => (
-            <MovieCard key={movie.imdbID} title={movie.Title} poster={movie.Poster} runtime={movie.Runtime} rating={movie.Ratings[0].Value} />
-          ))}
-        </div>
+        {props.movies &&
+          <Suspense fallback={<div>Carregando... </div>}>
+            <MovieCardList movies={props.movies} />
+          </Suspense>
+        }
       </main>
     </div>
   )
 }
+
+export const Content = memo(ContentComponent);
